@@ -1,0 +1,120 @@
+# Snapshot Use Report - LB side							
+# 4/19/2016													
+# Mike Lyon													
+# Scale Computing											
+# mlyon@scalecomputing.com									
+# 4/21/2016 - Added count for VMs and help message			
+#	4/28/2016 - Fixed usage
+# 5/2/2016 - Updated formatting 														
+#															
+#															
+#															
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+# Help Message
+# Help
+function usage {
+   echo "Usage: $0 [Company name] [Disk quota] [CPU quota] [Mem quota] [VM quota]";
+   echo ""
+   echo "All arguments are required, no spaces"
+   echo " "
+   echo "[Company name] = Company name from the tag of the replicated VM"
+   echo "***Company name*** MUST BE A tag associated with the source VM"
+   echo "[Disk quota] = Disk quota based on service level (in GB)"
+   echo "[CPU quota] = vCPU quota based on service level";
+   echo "[Mem quota] = RAM quota based on service level";
+   echo "[VM quota] = VM quota based on service level";
+   echo "";
+   echo "Example:"
+   echo "usagereport Acme 20 16 16 4"
+   echo ""
+   echo "Represents the company name of Acme, with a 20G disk limit, 16 processors, 4 VMs, and 16G of memory"
+}
+
+#for ARG in "$@"
+#do
+#   case "$ARG" in
+#      -h)
+#         usage
+#         exit 1
+#    esac
+#done
+if (( $# != 5 ))
+then
+   usage
+   exit 1
+fi
+
+# Initialize Global Variables and Arrays
+
+blockDiffArray=()
+cpuArray=()
+memArray=()
+
+finalTotal=0
+cpuTotal=0
+memTotal=0
+vmTotal=0
+cpu=0
+mem=0
+
+
+
+# Store the blockDiff values in the snapTotal Array
+for vmGUID in `sc vm show display detail | grep -B2 $1 | grep GUID | awk '{print $2}'`
+   do
+      blockDiffs=`sc vm show display snaps guid $vmGUID | egrep 'User|Automated' | cut -c 140-160 | awk '{print $2}'` 
+      blockDiffArray+=("$blockDiffs")
+      mem=`sc vm show display detail guid $vmGUID | egrep Memory | awk '{print $2'} | cut -d '.' -f 1`
+      memArray+=("$mem")
+      cpu=`sc vm show display detail guid $vmGUID | egrep CPUs | awk '{print $2'}`
+      cpuArray+=("$cpu")
+      vmTotal=`sc vm show display detail | grep -c $1`   
+   done
+
+
+# Sum the total from the blockDiffs Array
+for total in ${blockDiffArray[@]}
+   do
+      let finalTotal+=$total
+   done
+
+# Sum vCPU total
+for vCPUTotal in ${cpuArray[@]}
+   do
+      let cpuTotal+=$vCPUTotal
+   done
+   
+# Sum Mem total
+for vMEMTotal in ${memArray[@]}
+   do
+      let memTotal+=$vMEMTotal
+   done
+   
+date=`date`   
+# Display the total:
+echo " "
+echo "Customer $1 Daily Quota Report:"
+echo ""
+echo "As of $date"
+echo ""
+echo "Disk Usage:"
+echo "$1 is using:"
+echo 	$(( finalTotal / 1024 )) "GB"
+echo 	"Of the $2 GB Disk Quota."
+echo "- - - - - - - - - - - - - - - - - - - - -"
+echo "CPU Usage:"
+echo "$1 has used:"
+echo    "$cpuTotal vCPUs"
+echo    "Of the $3 vCPU quota"
+echo "- - - - - - - - - - - - - - - - - - - - -"
+echo "Memory Usage:"
+echo "$1 has used:"
+echo 	"$memTotal  GB"
+echo    "Of the $4 GB Memory Quota."
+echo "- - - - - - - - - - - - - - - - - - - - -"
+echo "Protected VM Quantity:"
+echo "$1 is protecting $vmTotal VMs"
+echo    "of their $5 VM quota"
+echo "- - - - - - - - - - - - - - - - - - - - -"
+
