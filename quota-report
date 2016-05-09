@@ -1,13 +1,13 @@
-# Snapshot Use Report - LB side							
+#!/bin/bash												
+# VM Snapshot Use Report - LB side							
 # 4/19/2016													
 # Mike Lyon													
 # Scale Computing											
 # mlyon@scalecomputing.com									
 # 4/21/2016 - Added count for VMs and help message			
-# 4/28/2016 - Fixed usage
-# 5/2/2016 - Updated formatting 														
-#															
-#															
+# 4/26/2016 - Need to get the usage fixed up										
+# 5/2/2016 - Updated Formatting															
+# 5/9/2016 - Added in check for quota violations													
 #															
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
@@ -19,7 +19,6 @@ function usage {
    echo "All arguments are required, no spaces"
    echo " "
    echo "[Company name] = Company name from the tag of the replicated VM"
-   echo "***Company name*** MUST BE A tag associated with the source VM"
    echo "[Disk quota] = Disk quota based on service level (in GB)"
    echo "[CPU quota] = vCPU quota based on service level";
    echo "[Mem quota] = RAM quota based on service level";
@@ -31,20 +30,16 @@ function usage {
    echo "Represents the company name of Acme, with a 20G disk limit, 16 processors, 4 VMs, and 16G of memory"
 }
 
-#for ARG in "$@"
-#do
-#   case "$ARG" in
-#      -h)
-#         usage
-#         exit 1
-#    esac
-#done
-if (( $# != 5 ))
-then
-   usage
-   exit 1
-fi
-
+for ARG in "$@"
+do
+   case "$ARG" in
+      -h)
+         usage
+         exit 1
+       ;;
+       -d*)
+    esac
+done
 # Initialize Global Variables and Arrays
 
 blockDiffArray=()
@@ -59,6 +54,8 @@ cpu=0
 mem=0
 
 
+# Get Company Name
+#read -p "Please Enter the Customer Name:  " custName
 
 # Store the blockDiff values in the snapTotal Array
 for vmGUID in `sc vm show display detail | grep -B2 $1 | grep GUID | awk '{print $2}'`
@@ -93,28 +90,64 @@ for vMEMTotal in ${memArray[@]}
    
 date=`date`   
 # Display the total:
+echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
+echo "-  Daily Quota Report:																	"
+echo "-											          										"	
+echo "-  Prepared for: $1																		"
+echo "-  As of $date																			"
+echo "-											         										"
+echo -e '-\t' "Disk Usage:																		"
+echo -e '-\t' "   $1 is using:																	"
+echo -e '-\t' "      $(( finalTotal / 1024 )) GB				        						"
+echo -e '-\t' "   Of the $2 GB Disk Quota.														"
+diskQuota=$(( finalTotal / 1024 ))
+if (( $diskQuota >= $2 ))
+   then
+   echo "-																					    "
+   echo -e '-\t\t'  "------  WARNING  ------													"
+   echo -e '-\t\t'  "--- QUOTA VIOLATION ---													"
+   echo -e '-\t\t'  "$1 has exceeded their Disk quota by: $(( finalTotal - diskQuota))          " 
+   echo "- 									         											"
+fi
+echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
 echo " "
-echo "Customer $1 Daily Quota Report:"
-echo ""
-echo "As of $date"
-echo ""
-echo "Disk Usage:"
-echo "$1 is using:"
-echo 	$(( finalTotal / 1024 )) "GB"
-echo 	"Of the $2 GB Disk Quota."
-echo "- - - - - - - - - - - - - - - - - - - - -"
-echo "CPU Usage:"
-echo "$1 has used:"
-echo    "$cpuTotal vCPUs"
-echo    "Of the $3 vCPU quota"
-echo "- - - - - - - - - - - - - - - - - - - - -"
-echo "Memory Usage:"
-echo "$1 has used:"
-echo 	"$memTotal  GB"
-echo    "Of the $4 GB Memory Quota."
-echo "- - - - - - - - - - - - - - - - - - - - -"
-echo "Protected VM Quantity:"
-echo "$1 is protecting $vmTotal VMs"
-echo    "of their $5 VM quota"
-echo "- - - - - - - - - - - - - - - - - - - - -"
-
+echo -e '-\t' "CPU Usage:									   									"
+echo -e '-\t' "   $1 has used:																	"
+echo -e '-\t' "      $cpuTotal vCPUs							        						"
+echo -e '-\t' "   Of the $3 vCPU quota															"
+if (( $cpuTotal >= $3 ))
+   then
+   echo "-																						"
+   echo -e '-\t\t' "------  WARNING  ------														"
+   echo -e '-\t\t' "--- QUOTA VIOLATION ---														"
+   echo -e '-\t\t' "$1 has exceeded their CPU quota by: $(( cpuTotal - $3 ))                    " 
+   echo "-																						"
+fi
+echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
+echo " "
+echo -e '-\t' "Memory Usage:																	"
+echo -e '-\t' "   $1 has used:																	"
+echo -e '-\t' "      $memTotal  GB																"
+echo -e '-\t' "   Of the $4 GB Memory Quota.													"
+if (( $memTotal > $4 )) 
+   then
+   echo "-																						"
+   echo -e '-\t\t' "------  WARNING  ------														"
+   echo -e '-\t\t' "--- QUOTA VIOLATION ---														"
+   echo -e '-\t\t' "$1 has exceeded their RAM quota by: " $(( memTotal - $4 ))
+   echo "-																						"
+fi
+echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
+echo " "
+echo -e '-\t' "Protected VM Quantity:															"
+echo -e '-\t' "      $1 is protecting $vmTotal VMs												"
+echo -e '-\t' "   of their $5 VM quota															"
+if (( $vmTotal > $5 ))
+   then
+   echo "-																						"
+   echo -e '-\t\t' "------  WARNING  ------														"
+   echo -e '-\t\t' "--- QUOTA VIOLATION ---														"
+   echo -e '-\t\t' "$1 has exceeded their protected VM quota by: " $(( vmTotal - $5))
+   echo "-																						"
+fi
+echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
