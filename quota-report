@@ -111,7 +111,7 @@ if (( $diskQuota >= $2 ))
    echo "- 									         											"
 fi
 echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
-echo " "
+echo "-																					    "
 echo -e '-\t' "CPU Usage:									   									"
 echo -e '-\t' "   $1 has used:																	"
 echo -e '-\t' "      $cpuTotal vCPUs							        						"
@@ -125,7 +125,7 @@ if (( $cpuTotal >= $3 ))
    echo "-																						"
 fi
 echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
-echo " "
+echo "-																					    "
 echo -e '-\t' "Memory Usage:																	"
 echo -e '-\t' "   $1 has used:																	"
 echo -e '-\t' "      $memTotal  GB																"
@@ -139,7 +139,7 @@ if (( $memTotal > $4 ))
    echo "-																						"
 fi
 echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
-echo " "
+echo "-																					    "
 echo -e '-\t' "Protected VM Quantity:															"
 echo -e '-\t' "      $1 is protecting $vmTotal VMs												"
 echo -e '-\t' "   of their $5 VM quota															"
