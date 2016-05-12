@@ -101,7 +101,7 @@ echo -e '-\t' "   $1 is using:																	"
 echo -e '-\t' "      $(( finalTotal / 1024 )) GB				        						"
 echo -e '-\t' "   Of the $2 GB Disk Quota.														"
 diskQuota=$(( finalTotal / 1024 ))
-if (( $diskQuota >= $2 ))
+if (( $diskQuota > $2 ))
    then
    echo "-																					    "
    echo "-																					    "
@@ -116,7 +116,7 @@ echo -e '-\t' "CPU Usage:									   									"
 echo -e '-\t' "   $1 has used:																	"
 echo -e '-\t' "      $cpuTotal vCPUs							        						"
 echo -e '-\t' "   Of the $3 vCPU quota															"
-if (( $cpuTotal >= $3 ))
+if (( $cpuTotal > $3 ))
    then
    echo "-																						"
    echo -e '-\t\t' "------  WARNING  ------														"
