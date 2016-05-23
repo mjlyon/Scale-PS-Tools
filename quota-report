@@ -92,63 +92,65 @@ date=`date`
 # Display the total:
 echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
 echo "-  Daily Quota Report:																	"
-echo "-											          										"	
+echo "-											          									"
 echo "-  Prepared for: $1																		"
 echo "-  As of $date																			"
-echo "-											         										"
+echo "-											         									"
 echo -e '-\t' "Disk Usage:																		"
 echo -e '-\t' "   $1 is using:																	"
 echo -e '-\t' "      $(( finalTotal / 1024 )) GB				        						"
 echo -e '-\t' "   Of the $2 GB Disk Quota.														"
+paidQuota=$2
 diskQuota=$(( finalTotal / 1024 ))
-if (( $diskQuota > $2 ))
+if (( $diskQuota >= $2 ))
    then
-   echo "-																					    "
-   echo "-																					    "
+   differential=$(( diskQuota - paidQuota ))
+   echo "-																				    "
    echo -e '-\t\t'  "------  WARNING  ------													"
    echo -e '-\t\t'  "--- QUOTA VIOLATION ---													"
-   echo -e '-\t\t'  "$1 has exceeded their Disk quota by: $(( finalTotal - diskQuota))          " 
-   echo "- 									         											"
+   echo -e '-\t\t'  "$1 has exceeded their Disk quota by: $differential GB         " 
+   echo "- 									         										"
 fi
 echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
-echo "-																					    "
+echo " "
 echo -e '-\t' "CPU Usage:									   									"
 echo -e '-\t' "   $1 has used:																	"
 echo -e '-\t' "      $cpuTotal vCPUs							        						"
 echo -e '-\t' "   Of the $3 vCPU quota															"
-if (( $cpuTotal > $3 ))
+if (( $cpuTotal >= $3 ))
    then
-   echo "-																						"
+   echo "-																				"
    echo -e '-\t\t' "------  WARNING  ------														"
    echo -e '-\t\t' "--- QUOTA VIOLATION ---														"
-   echo -e '-\t\t' "$1 has exceeded their CPU quota by: $(( cpuTotal - $3 ))                    " 
-   echo "-																						"
+   echo -e '-\t\t' "$1 has exceeded their CPU quota by: $(( cpuTotal - $3 ))   vCPUs                " 
+   echo "-																				"
 fi
 echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
-echo "-																					    "
+echo " "
 echo -e '-\t' "Memory Usage:																	"
 echo -e '-\t' "   $1 has used:																	"
 echo -e '-\t' "      $memTotal  GB																"
 echo -e '-\t' "   Of the $4 GB Memory Quota.													"
 if (( $memTotal > $4 )) 
    then
-   echo "-																						"
+   echo "-																				"
    echo -e '-\t\t' "------  WARNING  ------														"
    echo -e '-\t\t' "--- QUOTA VIOLATION ---														"
-   echo -e '-\t\t' "$1 has exceeded their RAM quota by: " $(( memTotal - $4 ))
-   echo "-																						"
+   echo -e '-\t\t' "$1 has exceeded their RAM quota by:  $(( memTotal - $4 ))  GB  "
+   echo "-																				"
 fi
 echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
-echo "-																					    "
+echo " "
 echo -e '-\t' "Protected VM Quantity:															"
 echo -e '-\t' "      $1 is protecting $vmTotal VMs												"
 echo -e '-\t' "   of their $5 VM quota															"
 if (( $vmTotal > $5 ))
    then
-   echo "-																						"
+   echo "-																				"
    echo -e '-\t\t' "------  WARNING  ------														"
    echo -e '-\t\t' "--- QUOTA VIOLATION ---														"
-   echo -e '-\t\t' "$1 has exceeded their protected VM quota by: " $(( vmTotal - $5))
-   echo "-																						"
+   echo -e '-\t\t' "$1 has exceeded their protected VM quota by:  $(( vmTotal - $5)) VMs   :    "
+   echo "-																				"
 fi
 echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
+
