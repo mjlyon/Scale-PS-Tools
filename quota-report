@@ -30,16 +30,27 @@ function usage {
    echo "Represents the company name of Acme, with a 20G disk limit, 16 processors, 4 VMs, and 16G of memory"
 }
 
-for ARG in "$@"
-do
-   case "$ARG" in
-      -h)
-         usage
-         exit 1
-       ;;
-       -d*)
-    esac
-done
+if [ $# -lt 5 ]; then
+   echo 1>&2 "Not enough arguments provided"
+   usage 
+   exit 2
+elif [ $# -gt 5 ]; then
+   echo 1>&2 "Too many arguments"
+   usage
+   exit 2
+fi
+
+
+#for ARG in "$@"
+#do
+#   case "$ARG" in
+#      -h)
+#         usage
+#         exit 1
+#       ;;
+#       -d*)
+#    esac
+#done
 # Initialize Global Variables and Arrays
 
 blockDiffArray=()
@@ -54,8 +65,6 @@ cpu=0
 mem=0
 
 
-# Get Company Name
-#read -p "Please Enter the Customer Name:  " custName
 
 # Store the blockDiff values in the snapTotal Array
 for vmGUID in `sc vm show display detail | grep -B2 $1 | grep GUID | awk '{print $2}'`
@@ -122,7 +131,7 @@ if (( $cpuTotal >= $3 ))
    echo "-																				"
    echo -e '-\t\t' "------  WARNING  ------														"
    echo -e '-\t\t' "--- QUOTA VIOLATION ---														"
-   echo -e '-\t\t' "$1 has exceeded their CPU quota by: $(( cpuTotal - $3 ))   vCPUs                " 
+   echo -e '-\t\t' "$1 has exceeded their CPU quota by: $(( cpuTotal - $3 )) vCPUs                " 
    echo "-																				"
 fi
 echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
@@ -136,7 +145,7 @@ if (( $memTotal > $4 ))
    echo "-																				"
    echo -e '-\t\t' "------  WARNING  ------														"
    echo -e '-\t\t' "--- QUOTA VIOLATION ---														"
-   echo -e '-\t\t' "$1 has exceeded their RAM quota by:  $(( memTotal - $4 ))  GB  "
+   echo -e '-\t\t' "$1 has exceeded their RAM quota by: $(( memTotal - $4 )) GB  "
    echo "-																				"
 fi
 echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
@@ -149,7 +158,7 @@ if (( $vmTotal > $5 ))
    echo "-																				"
    echo -e '-\t\t' "------  WARNING  ------														"
    echo -e '-\t\t' "--- QUOTA VIOLATION ---														"
-   echo -e '-\t\t' "$1 has exceeded their protected VM quota by:  $(( vmTotal - $5)) VMs   :    "
+   echo -e '-\t\t' "$1 has exceeded their protected VM quota by: $(( vmTotal - $5)) VMs                    "
    echo "-																				"
 fi
 echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
