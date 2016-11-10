@@ -1,0 +1,49 @@
+#!/bin/bash
+# Mike Lyon 11/10/2016 - mlyon@scalecomputing.com
+# Copyright 2016 
+
+
+#Set Mac Address from unused0:
+bmcMAC=`ip link show unused0  | grep ether | awk '{print $2}'`
+pmitool lan set 1 macaddr $bmcMAC
+
+# Set IP Address
+echo "Please enter the desired IP address of the IPMI controller:"
+read bmcIP
+echo "Setting IP address . . ."
+ipmitool lan set 1 ipsrc static
+ipmitool lan set 1 ipaddr $bmcIP
+sleep 3 
+
+# Set Netmask
+echo "Please enter the netmask:"
+read netmask
+echo "Setting netmask . . . "
+ipmitool lan set 1 netmask $netmask
+sleep 3
+
+# Set Gateway
+echo "Please enter the default gateway:"
+read defGW
+echo "Setting Default Gateway . . ."
+ipmitool lan set 1 defgw $defGW
+sleep 3
+
+# Set Password
+echo "Please set a password for the admin user:"
+read adminPass
+echo "Enabling user and applying password . . ."
+sleep 1
+
+ipmitool lan set 1 auth ADMIN MD5
+sleep 1
+ipmitool lan set 1 access on
+sleep 1
+ipmitool user set name 2 admin
+sleep 1
+ipmitool user set password 2 $adminPass
+sleep 1
+ipmitool channel setaccess 1 2 link=on ipmi=on callin=on privilege=4
+sleep 1
+ipmitool user enable 2
+
