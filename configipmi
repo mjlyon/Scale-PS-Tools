@@ -47,3 +47,14 @@ ipmitool channel setaccess 1 2 link=on ipmi=on callin=on privilege=4
 sleep 1
 ipmitool user enable 2
 
+# Update firewall rules
+echo "Enabling IPMI Port for communication (TCP/623)"
+sleep 1
+echo ". . ."
+scdoall cp /opt/scale/lib/scaled/config_templates/etc/sysconfig/iptables.template /tmp/iptables.orig
+scdoall sed -i '/localhost/a -A INPUT -m tcp -p tcp --dport 623 -m state --state NEW -j ACCEPT' /opt/scale/lib/scaled/config_templates/etc/sysconfig/iptables.template
+sc rollout create
+
+echo "Setup complete. You can access the interface for your controller at: $bmcIP"
+
+
